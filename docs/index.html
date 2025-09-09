@@ -3,35 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domi - Your Personal Home Management App</title>
+    <title>Plentify - Home Management</title>
+    <!-- External Libraries & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind CSS for dark mode
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Onest:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Internal Styles -->
     <style>
+        /* Base font settings */
         body {
             font-family: 'Instrument Sans', sans-serif;
+            background-color: #EFE9FF;
+        }
+        .dark body {
+            background-color: #111827;
         }
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Onest', sans-serif;
         }
-        h1 { font-weight: 700; }
-        h2, h3 { font-weight: 600; } /* Semibold for smaller headings */
+        h1 { font-weight: 700; } /* Onest Bold for App Name */
+        h2 { 
+            font-weight: 700; /* Onest Bold for Page Titles */
+            font-size: 2.25rem;
+            margin-bottom: 2rem;
+        }
+        h3 { 
+            font-weight: 600; /* Onest Semibold for Subheadings */
+        }
 
         /* --- Custom Color Palette --- */
         .bg-primary { background-color: #7946FF; }
         .hover-bg-primary-dark:hover { background-color: #6a3de6; }
         .text-primary { color: #7946FF; }
-        .hover-text-primary-dark:hover { color: #6a3de6; }
-        .bg-highlight { background-color: #D2C2FF; }
         .ring-primary:focus {
             --tw-ring-color: #7946FF;
         }
         .border-primary { border-color: #7946FF; }
         .accent-primary { accent-color: #7946FF; }
 
+        /* Navigation styles */
         .nav-item.active {
             background-color: #7946FF;
             color: white;
@@ -40,172 +60,134 @@
             background-color: #7946FF;
             color: white;
         }
+
+        /* Page content visibility */
         .content-section {
             display: none;
         }
         .content-section.active {
             display: block;
         }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
+        
+        /* FAQ Accordion animation styles */
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+
+        /* Mobile sidebar styles */
+        @media (max-width: 767px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+            body.sidebar-open {
+                overflow: hidden; /* Prevents background scrolling when mobile menu is open */
+            }
         }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        /* Styles for modals */
-        .modal {
-            transition: opacity 0.3s ease;
-        }
-        /* Calendar styles */
-        .calendar-day {
-            height: 7rem;
-        }
-        .today {
-            background-color: #e9e4ff;
-        }
-        .category-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 4px;
-            flex-shrink: 0;
-        }
-        .cat-event { background-color: #3b82f6; } /* blue */
-        .cat-task { background-color: #f97316; } /* orange */
-        .cat-appointment { background-color: #10b981; } /* green */
-        .cat-meeting { background-color: #8b5cf6; } /* violet */
     </style>
 </head>
-<body class="bg-highlight text-gray-800">
+<body class="text-gray-800 dark:bg-gray-900 dark:text-gray-200">
 
-    <div class="flex flex-col md:flex-row min-h-screen">
+    <div class="relative min-h-screen md:flex">
+        <!-- Overlay for mobile menu -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
         <!-- Sidebar Navigation -->
-        <aside class="w-full md:w-64 bg-white shadow-lg md:min-h-screen flex flex-col">
+        <aside id="sidebar" class="w-64 bg-white dark:bg-gray-800 shadow-lg md:min-h-screen flex flex-col justify-between">
             <div>
                 <div class="p-6">
-                    <h1 class="text-2xl text-primary">Domi</h1>
-                    <p class="text-sm text-gray-500 mt-1">Manage your home life</p>
+                    <h1 class="text-2xl text-primary">Plentify</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Smart Home Management</p>
                 </div>
                 <nav class="mt-4">
-                    <a href="#" id="nav-dashboard" class="nav-item flex items-center px-6 py-3 text-gray-600 transition-colors duration-200">
+                    <a href="#" id="nav-dashboard" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
                         <i class="fas fa-home w-6"></i><span class="mx-4">Home</span>
                     </a>
-                    <a href="#" id="nav-calendar" class="nav-item flex items-center px-6 py-3 text-gray-600 transition-colors duration-200">
-                        <i class="fas fa-calendar-alt w-6"></i><span class="mx-4">Calendar</span>
+                    <a href="#" id="nav-shopping" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
+                        <i class="fas fa-shopping-cart w-6"></i><span class="mx-4">Grocery List</span>
                     </a>
-                    <a href="#" id="nav-todos" class="nav-item flex items-center px-6 py-3 text-gray-600 transition-colors duration-200">
-                        <i class="fas fa-list-check w-6"></i><span class="mx-4">To-Do List</span>
-                    </a>
-                    <a href="#" id="nav-shopping" class="nav-item flex items-center px-6 py-3 text-gray-600 transition-colors duration-200">
-                        <i class="fas fa-shopping-cart w-6"></i><span class="mx-4">Shopping List</span>
-                    </a>
-                    <a href="#" id="nav-meals" class="nav-item flex items-center px-6 py-3 text-gray-600 transition-colors duration-200">
+                    <a href="#" id="nav-meals" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
                         <i class="fas fa-utensils w-6"></i><span class="mx-4">Meal Planner</span>
                     </a>
-                    <a href="#" id="nav-rewards" class="nav-item flex items-center px-6 py-3 text-gray-600 transition-colors duration-200">
+                    <a href="#" id="nav-inventory" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
+                        <i class="fas fa-boxes-stacked w-6"></i><span class="mx-4">Inventory</span>
+                    </a>
+                    <a href="#" id="nav-rewards" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
                         <i class="fas fa-id-card w-6"></i><span class="mx-4">Rewards Cards</span>
                     </a>
-                    <a href="https://my.plentify.io/" target="_blank" rel="noopener noreferrer" class="nav-item flex items-center px-6 py-3 text-gray-600 transition-colors duration-200">
+                     <a href="#" id="nav-geyser" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
                         <i class="fas fa-temperature-full w-6"></i><span class="mx-4">Geyser</span>
+                    </a>
+                    <a href="#" id="nav-explore" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
+                        <i class="fas fa-compass w-6"></i><span class="mx-4">Explore</span>
+                    </a>
+                    <div class="px-6 pt-4">
+                        <hr class="border-gray-200 dark:border-gray-700">
+                    </div>
+                    <a href="#" id="nav-settings" class="nav-item flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 transition-colors duration-200">
+                        <i class="fas fa-cog w-6"></i><span class="mx-4">Settings</span>
                     </a>
                 </nav>
             </div>
-            <!-- Clock and Logo -->
-            <div class="mt-auto p-6 text-center">
-                <div class="mb-4">
-                    <p id="clock-time" class="text-2xl font-bold text-gray-800"></p>
-                    <p id="clock-date" class="text-sm text-gray-500"></p>
-                </div>
-                <a href="https://plentify.io/" target="_blank" rel="noopener noreferrer" title="Plentify Homepage">
-                    <svg viewBox="0 0 125 20" xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto mx-auto">
-                        <text x="0" y="15" font-family="Onest, sans-serif" font-weight="700" font-size="18" fill="#2c2c2c">plentify</text>
-                        <rect x="70" y="0" width="4" height="7" fill="white"/>
-                        <circle cx="72" cy="5.5" r="1.5" fill="#7946FF"/>
-                    </svg>
-                </a>
+            <!-- Support Link at the bottom -->
+            <div class="p-6 text-center text-xs text-gray-500 dark:text-gray-400">
+                <p>For help please contact <a href="mailto:support@plentify.io" class="text-primary hover:underline">support@plentify.io</a></p>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="flex-1 p-4 md:p-8 overflow-y-auto">
             
-            <!-- Home Section (Formerly Dashboard) -->
+            <!-- Mobile Header -->
+            <div class="md:hidden flex justify-between items-center mb-4">
+                <button id="mobile-menu-btn" class="text-2xl text-primary">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="text-xl text-primary font-bold">Plentify</h1>
+            </div>
+
+            <!-- Home Section -->
             <div id="content-dashboard" class="content-section">
-                <h2 class="text-3xl mb-6">Home</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow lg:col-span-2">
-                        <h3 class="text-lg">Today's Agenda</h3>
-                        <div id="summary-agenda" class="mt-2 space-y-2 h-48 overflow-y-auto">
-                            <!-- Agenda items will be injected here -->
-                        </div>
+                <h2>Home</h2>
+                <!-- Geyser Widget -->
+                <div id="geyser-widget" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow text-center mb-6">
+                    <p class="text-6xl font-bold text-primary"><span id="geyser-temp-widget">55</span>&deg;C</p>
+                    <p id="geyser-status-widget" class="text-lg text-gray-600 dark:text-gray-300 mt-1">Your water is warm</p>
+                    <div id="geyser-heating-banner-widget" class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 p-3 rounded-lg my-4 hidden">
+                        Your geyser is heating now.
                     </div>
-                    <div class="space-y-6">
-                        <div id="home-shopping-widget" class="bg-white p-6 rounded-lg shadow text-center cursor-pointer hover:shadow-lg transition-shadow">
-                            <h3 class="text-lg">Shopping List</h3>
-                            <p class="text-5xl font-bold text-primary my-2" id="summary-shopping-count">0</p>
-                            <p class="text-sm text-gray-500">items to buy</p>
-                        </div>
-                        <a href="https://my.plentify.io/" target="_blank" rel="noopener noreferrer" class="block">
-                            <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow flex flex-col justify-between h-full">
-                                <h3 class="text-lg">Geyser Status</h3>
-                                <div>
-                                    <p class="text-lg text-gray-700 mt-2" id="summary-geyser-status">Your water is cool.</p>
-                                    <p class="text-4xl font-bold text-primary my-1"><span id="summary-geyser-temp">22</span>&deg;C</p>
-                                </div>
-                                <div class="bg-highlight/60 p-2 rounded-md mt-1">
-                                    <p id="summary-geyser-time" class="text-sm">You will have hot water at 3:00pm</p>
-                                </div>
-                            </div>
-                        </a>
+                    <button id="geyser-toggle-btn-widget" class="w-full max-w-sm mx-auto bg-primary text-white py-3 rounded-lg hover-bg-primary-dark transition mt-2">Turn on now</button>
+                </div>
+                
+                <!-- Dashboard Widgets Grid -->
+                <div id="dashboard-widgets" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Today's Menu Widget -->
+                    <div id="home-meal-widget" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow cursor-pointer">
+                        <!-- Content generated by JS -->
+                    </div>
+                     <!-- Grocery List Preview Widget -->
+                    <div id="home-shopping-widget" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow cursor-pointer">
+                        <!-- Content generated by JS -->
                     </div>
                 </div>
             </div>
 
-            <!-- Calendar Section -->
-            <div id="content-calendar" class="content-section">
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <div class="flex justify-between items-center mb-4">
-                        <button id="prev-month-btn" class="p-2 rounded-full hover:bg-gray-200"><i class="fas fa-chevron-left"></i></button>
-                        <h2 id="calendar-month-year" class="text-2xl font-bold"></h2>
-                        <button id="next-month-btn" class="p-2 rounded-full hover:bg-gray-200"><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                    <div class="grid grid-cols-7 gap-1 text-center font-semibold text-gray-600">
-                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-                    </div>
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 mt-2">
-                        <!-- Calendar days will be injected here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- To-Do List Section -->
-            <div id="content-todos" class="content-section">
-                <h2 class="text-3xl mb-6">To-Do List</h2>
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <div class="flex mb-4 items-center space-x-2">
-                        <input type="text" id="todo-input" class="flex-grow p-2 border rounded-l-lg focus:outline-none focus:ring-2 ring-primary" placeholder="Add a new task...">
-                        <input type="time" id="todo-time" class="p-2 border focus:outline-none focus:ring-2 ring-primary">
-                        <button id="add-todo-btn" class="bg-primary text-white px-4 py-2 rounded-r-lg hover-bg-primary-dark transition-colors h-full">Add</button>
-                    </div>
-                    <ul id="todo-list" class="space-y-2"></ul>
-                </div>
-            </div>
-
-            <!-- Shopping List Section -->
+            <!-- Grocery List Section -->
             <div id="content-shopping" class="content-section">
-                <h2 class="text-3xl mb-6">Shopping List</h2>
-                <div class="bg-white p-6 rounded-lg shadow">
+                <h2>Grocery List</h2>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <div class="flex mb-4">
-                        <input type="text" id="shopping-input" class="flex-grow p-2 border rounded-l-lg focus:outline-none focus:ring-2 ring-primary" placeholder="Add an item...">
+                        <input type="text" id="shopping-input" class="flex-grow p-2 border rounded-l-lg focus:outline-none focus:ring-2 ring-primary bg-violet-50 dark:bg-gray-700 dark:border-gray-600" placeholder="Add an item...">
                         <button id="add-shopping-btn" class="bg-primary text-white px-4 py-2 rounded-r-lg hover-bg-primary-dark transition-colors">Add</button>
                     </div>
                     <ul id="shopping-list" class="space-y-2"></ul>
@@ -214,231 +196,520 @@
 
             <!-- Meal Planner Section -->
             <div id="content-meals" class="content-section">
-                <h2 class="text-3xl mb-6">Meal Planner</h2>
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><h3>Monday</h3><input class="meal-input w-full mt-1 p-1 border rounded" id="meal-Monday" placeholder="Plan meal..."/></div>
-                        <div><h3>Tuesday</h3><input class="meal-input w-full mt-1 p-1 border rounded" id="meal-Tuesday" placeholder="Plan meal..."/></div>
-                        <div><h3>Wednesday</h3><input class="meal-input w-full mt-1 p-1 border rounded" id="meal-Wednesday" placeholder="Plan meal..."/></div>
-                        <div><h3>Thursday</h3><input class="meal-input w-full mt-1 p-1 border rounded" id="meal-Thursday" placeholder="Plan meal..."/></div>
-                        <div><h3>Friday</h3><input class="meal-input w-full mt-1 p-1 border rounded" id="meal-Friday" placeholder="Plan meal..."/></div>
-                        <div><h3>Saturday</h3><input class="meal-input w-full mt-1 p-1 border rounded" id="meal-Saturday" placeholder="Plan meal..."/></div>
-                        <div><h3>Sunday</h3><input class="meal-input w-full mt-1 p-1 border rounded" id="meal-Sunday" placeholder="Plan meal..."/></div>
+                <h2>Meal Planner</h2>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                    <div class="flex justify-between items-center mb-4">
+                        <button id="prev-day-btn" class="p-2 rounded-full hover:bg-violet-100 dark:hover:bg-gray-700"><i class="fas fa-chevron-left"></i></button>
+                        <h3 id="meal-planner-day-title" class="text-xl"></h3>
+                        <button id="next-day-btn" class="p-2 rounded-full hover:bg-violet-100 dark:hover:bg-gray-700"><i class="fas fa-chevron-right"></i></button>
                     </div>
-                     <button id="save-meals-btn" class="mt-6 bg-primary text-white px-4 py-2 rounded-lg hover-bg-primary-dark transition-colors">Save Meals</button>
+                    <div id="meal-planner-container" class="space-y-4">
+                        <!-- Daily meal plan generated by JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inventory Section -->
+            <div id="content-inventory" class="content-section">
+                <h2>Inventory</h2>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                     <div class="flex mb-4">
+                        <input type="text" id="inventory-input" class="flex-grow p-2 border rounded-l-lg focus:outline-none focus:ring-2 ring-primary bg-violet-50 dark:bg-gray-700 dark:border-gray-600" placeholder="Add an item you have...">
+                        <button id="add-inventory-btn" class="bg-primary text-white px-4 py-2 rounded-r-lg hover-bg-primary-dark transition-colors">Add</button>
+                    </div>
+                    <ul id="inventory-list" class="space-y-2"></ul>
                 </div>
             </div>
 
             <!-- Rewards Cards Section -->
             <div id="content-rewards" class="content-section">
-                <h2 class="text-3xl mb-6">Rewards Cards</h2>
+                <h2>Rewards Cards</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg mb-4">Add New Card</h3>
-                        <input type="text" id="reward-name-input" class="w-full p-2 border rounded-lg mb-2" placeholder="Card Name (e.g., Coffee Shop)">
-                        <input type="text" id="reward-barcode-input" class="w-full p-2 border rounded-lg mb-2" placeholder="Barcode Number">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                        <h3 class="mb-4">Add New Card</h3>
+                        <input type="text" id="reward-name-input" class="w-full p-2 border rounded-lg mb-2 bg-violet-50 dark:bg-gray-700 dark:border-gray-600" placeholder="Card Name (e.g., Coffee Shop)">
+                        <input type="text" id="reward-barcode-input" class="w-full p-2 border rounded-lg mb-2 bg-violet-50 dark:bg-gray-700 dark:border-gray-600" placeholder="Barcode Number">
                         <button id="add-reward-btn" class="w-full bg-primary text-white px-4 py-2 rounded-lg hover-bg-primary-dark transition-colors">Add Card</button>
                     </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg">My Cards</h3>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                        <h3>My Cards</h3>
                         <div id="rewards-list" class="mt-4 space-y-2 h-64 overflow-y-auto"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- Geyser Section -->
+            <div id="content-geyser" class="content-section">
+                <h2>Geyser Control</h2>
+                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                    <div class="text-center">
+                        <p id="geyser-status-page" class="text-lg text-gray-700 dark:text-gray-300">Your water is warm.</p>
+                        <p class="text-7xl font-bold text-primary my-4"><span id="geyser-temp-page">60</span>&deg;C</p>
+                        <button id="change-max-temp-btn" class="px-4 py-2 border border-primary text-primary rounded-full hover:bg-primary hover:text-white transition">Change max temperature</button>
+                    
+                        <div id="geyser-heating-banner-page" class="bg-primary text-white p-4 rounded-lg my-8 hidden">
+                            <h3 class="font-bold">Your geyser is heating additional hot water</h3>
+                        </div>
+
+                         <div id="geyser-info-banner-page" class="bg-violet-100 dark:bg-gray-700 p-4 rounded-lg my-8">
+                            <p>You will have hot water at 5:00pm</p>
+                        </div>
+
+                        <div id="geyser-controls-page" class="space-y-4">
+                             <p id="geyser-delay-text" class="text-sm text-gray-500 dark:text-gray-400">Turn on now or delay until 5:30am tomorrow</p>
+                             <div id="geyser-main-actions">
+                                 <button id="geyser-toggle-btn-page" class="w-full max-w-sm mx-auto bg-primary text-white py-3 rounded-lg hover-bg-primary-dark transition">Turn on now</button>
+                                 <button id="geyser-delay-btn" class="w-full max-w-sm mx-auto bg-gray-800 dark:bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-900 dark:hover:bg-gray-500 transition mt-4">Delay</button>
+                             </div>
+                             <button class="w-full max-w-sm mx-auto bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition mt-8">Turn on Vacation Mode</button>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Explore Section -->
+            <div id="content-explore" class="content-section">
+                <h2>Explore Offers</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                        <i class="fas fa-bolt text-3xl text-primary mb-4"></i>
+                        <h3>Energy Savings</h3>
+                        <p class="mt-2 text-gray-600 dark:text-gray-300">Discover how Plentify can help you save on your electricity bill.</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                        <i class="fas fa-shield-alt text-3xl text-primary mb-4"></i>
+                        <h3>Home Insurance</h3>
+                        <p class="mt-2 text-gray-600 dark:text-gray-300">Get exclusive offers on home insurance for Plentify users.</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                        <i class="fas fa-wifi text-3xl text-primary mb-4"></i>
+                        <h3>Discounted Home WiFi</h3>
+                        <p class="mt-2 text-gray-600 dark:text-gray-300">Access special rates on high-speed internet for your home.</p>
+                    </div>
+                    <!-- HotBot Offer Card -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow md:col-span-2">
+                        <div class="flex flex-col md:flex-row md:items-center gap-6">
+                             <div class="text-center">
+                                <i class="fas fa-temperature-full text-5xl text-primary"></i>
+                             </div>
+                             <div class="flex-1">
+                                <h3 class="text-xl">HotBot Smart Geyser Controller</h3>
+                                <p class="mt-2 text-gray-600 dark:text-gray-300">A HotBot is a smart geyser controller that helps you save electricity.</p>
+                             </div>
+                             <div class="text-center md:text-right">
+                                <p class="text-3xl font-bold text-primary">R849</p>
+                                <p class="text-sm font-semibold text-green-600 dark:text-green-400">Includes 2 Months Free Trial</p>
+                                <a href="https://plentify.io/non-solar-households/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg hover-bg-primary-dark transition-colors text-center">
+                                    Learn More
+                                </a>
+                             </div>
+                        </div>
+                    </div>
+                    <!-- New SolarBot Offer Card -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow md:col-span-2">
+                        <div class="flex flex-col md:flex-row md:items-center gap-6">
+                             <div class="text-center">
+                                <i class="fas fa-solar-panel text-5xl text-primary"></i>
+                             </div>
+                             <div class="flex-1">
+                                <h3 class="text-xl">SolarBot Solar Maximiser</h3>
+                                <p class="mt-2 text-gray-600 dark:text-gray-300">A device that helps you maximise your solar energy use.</p>
+                             </div>
+                             <div class="text-center md:text-right">
+                                <p class="text-3xl font-bold text-primary">R849</p>
+                                <p class="text-sm font-semibold text-green-600 dark:text-green-400">Includes 2 Months Free Trial</p>
+                                <a href="https://plentify.io/solar-households/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg hover-bg-primary-dark transition-colors text-center">
+                                    Learn More
+                                </a>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="content-settings" class="content-section">
+                <h2>Settings</h2>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                    <h3 class="mb-4">Display</h3>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-700 dark:text-gray-300">Theme</span>
+                        <div class="flex items-center justify-center space-x-2">
+                            <i class="fas fa-sun text-gray-500 dark:text-gray-400"></i>
+                            <label for="theme-toggle" class="relative inline-block w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer">
+                                <input type="checkbox" id="theme-toggle" class="sr-only peer">
+                                <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 peer-checked:bg-primary"></span>
+                            </label>
+                            <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
+                        </div>
+                    </div>
+                    <hr class="my-6 border-gray-200 dark:border-gray-700">
+                    <h3 class="mb-4">Account</h3>
+                    <div class="space-y-2">
+                        <button class="w-full text-left p-3 bg-violet-100 dark:bg-gray-700 rounded-lg hover:bg-violet-200 dark:hover:bg-gray-600">Add Device</button>
+                        <button class="w-full text-left p-3 bg-violet-100 dark:bg-gray-700 rounded-lg hover:bg-violet-200 dark:hover:bg-gray-600">Add User</button>
+                    </div>
+                    <hr class="my-6 border-gray-200 dark:border-gray-700">
+                    <h3 class="mb-4">FAQ</h3>
+                    <div id="faq-container" class="space-y-2">
+                        <!-- FAQ items will be injected here -->
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
     <!-- Modals -->
-    <div id="event-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h3 class="text-2xl mb-6 text-center">Add Event</h3>
-            <input type="hidden" id="event-date">
-            <div class="space-y-4">
-                <div>
-                    <label for="event-title" class="block text-sm font-medium text-gray-700">Event Title</label>
-                    <input type="text" id="event-title" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                </div>
-                <div>
-                    <label for="event-time" class="block text-sm font-medium text-gray-700">Time</label>
-                    <input type="time" id="event-time" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                </div>
-                <div>
-                    <label for="event-category" class="block text-sm font-medium text-gray-700">Category</label>
-                    <select id="event-category" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                        <option value="event">Event</option>
-                        <option value="task">Task</option>
-                        <option value="appointment">Appointment</option>
-                        <option value="meeting">Meeting</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="event-recurring" class="block text-sm font-medium text-gray-700">Recurring</label>
-                    <select id="event-recurring" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                        <option value="none">Does not repeat</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
-                </div>
-            </div>
-            <div class="mt-8 flex space-x-4">
-                <button id="cancel-event-btn" class="w-full text-gray-600 py-2 rounded-lg hover:bg-gray-200 transition">Cancel</button>
-                <button id="save-event-btn" class="w-full bg-primary text-white py-2 rounded-lg hover-bg-primary-dark transition">Save Event</button>
-            </div>
-        </div>
-    </div>
-    <div id="view-event-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h3 id="view-event-title" class="text-2xl mb-6 text-center font-bold"></h3>
-            <div class="space-y-3 text-gray-700">
-                <p><i class="fas fa-calendar-alt w-6 text-primary"></i> <span id="view-event-date"></span></p>
-                <p><i class="fas fa-clock w-6 text-primary"></i> <span id="view-event-time"></span></p>
-                <p><i class="fas fa-tag w-6 text-primary"></i> <span id="view-event-category" class="capitalize"></span></p>
-                <p><i class="fas fa-redo w-6 text-primary"></i> <span id="view-event-recurring" class="capitalize"></span></p>
-            </div>
-            <div class="mt-8 flex space-x-4">
-                <button id="delete-event-btn" class="w-full text-red-500 py-2 rounded-lg hover:bg-red-100 transition">Delete</button>
-                <button id="close-view-event-btn" class="w-full bg-primary text-white py-2 rounded-lg hover-bg-primary-dark transition">Close</button>
-            </div>
-        </div>
-    </div>
     <div id="barcode-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl text-center">
             <h3 id="barcode-card-name" class="text-2xl mb-4"></h3>
             <svg id="barcode-display"></svg>
             <button id="close-modal-btn" class="mt-6 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors">Close</button>
         </div>
     </div>
+    <div id="meal-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h3 id="meal-modal-title" class="text-2xl mb-6 text-center">Add Meal</h3>
+            <input type="hidden" id="meal-modal-day">
+            <input type="hidden" id="meal-modal-type">
+            <div>
+                <label for="meal-modal-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Meal Name</label>
+                <input type="text" id="meal-modal-input" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary bg-violet-50 dark:bg-gray-700">
+            </div>
+            <div class="mt-8 flex space-x-4">
+                <button id="cancel-meal-btn" class="w-full text-gray-600 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                <button id="save-meal-btn" class="w-full bg-primary text-white py-2 rounded-lg hover-bg-primary-dark transition">Save Meal</button>
+            </div>
+        </div>
+    </div>
     
     <script>
+    // This event listener ensures that the JavaScript code runs only after the entire HTML document has been loaded.
     document.addEventListener('DOMContentLoaded', () => {
         
-        const createListComponent = (config) => {
-            const { app, stateKey, inputId, addBtnId, listId, placeholder, timeInputId } = config;
-            const component = {
-                inputEl: document.getElementById(inputId),
-                timeEl: timeInputId ? document.getElementById(timeInputId) : null,
-                addBtnEl: document.getElementById(addBtnId),
-                listEl: document.getElementById(listId),
-                init() {
-                    this.addBtnEl.addEventListener('click', () => this.addItem());
-                    this.inputEl.addEventListener('keypress', (e) => e.key === 'Enter' && this.addItem());
-                    this.listEl.addEventListener('click', (e) => this.handleListClick(e));
-                },
-                render(items) {
-                    this.listEl.innerHTML = '';
-                    if (items.length === 0) {
-                        this.listEl.innerHTML = `<li class="text-gray-500">${placeholder}</li>`;
-                        return;
-                    }
-                    items.forEach((item, index) => {
-                        const li = document.createElement('li');
-                        li.className = `flex items-center justify-between p-2 rounded-lg ${item.completed ? 'bg-completed text-gray-600' : 'bg-gray-100'}`;
-                        const timeDisplay = item.time ? `<span class="text-sm bg-primary/20 text-primary font-semibold rounded px-2 py-1 mr-2">${item.time}</span>` : '';
-                        li.innerHTML = `
-                            <div class="flex items-center">
-                                ${timeDisplay}
-                                <span class="${item.completed ? 'line-through' : ''}">${item.text}</span>
-                            </div>
-                            <div>
-                                <button data-index="${index}" class="toggle-item-btn text-primary hover-text-primary-dark mr-2"><i class="fas fa-check"></i></button>
-                                <button data-index="${index}" class="delete-item-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                        this.listEl.appendChild(li);
-                    });
-                },
-                addItem() {
-                    const text = this.inputEl.value.trim();
-                    if (text) {
-                        const newItem = { text, completed: false };
-                        if (this.timeEl && this.timeEl.value) {
-                            newItem.time = this.timeEl.value;
-                        }
-                        app.state[stateKey].push(newItem);
-                        this.inputEl.value = '';
-                        if (this.timeEl) this.timeEl.value = '';
-                        app.saveAndRender();
-                    }
-                },
-                handleListClick(e) {
-                    const deleteBtn = e.target.closest('.delete-item-btn');
-                    if (deleteBtn) {
-                        const index = deleteBtn.dataset.index;
-                        app.state[stateKey].splice(index, 1);
-                        app.saveAndRender();
-                    }
-                    const toggleBtn = e.target.closest('.toggle-item-btn');
-                    if (toggleBtn) {
-                        const index = toggleBtn.dataset.index;
-                        app.state[stateKey][index].completed = !app.state[stateKey][index].completed;
-                        app.saveAndRender();
-                    }
-                }
-            };
-            return component;
-        };
-
-        const MealPlannerComponent = {
+        /**
+         * ----------------------------------------------------------------
+         * COMPONENT: ShoppingListComponent
+         * ----------------------------------------------------------------
+         * Manages all functionality for the grocery list page, including
+         * adding items and moving them to inventory when "bought".
+         */
+        const ShoppingListComponent = {
             init(app) {
                 this.app = app;
-                this.mealInputs = document.querySelectorAll('.meal-input');
-                this.saveBtn = document.getElementById('save-meals-btn');
-                this.saveBtn.addEventListener('click', () => this.saveMeals());
+                this.inputEl = document.getElementById('shopping-input');
+                this.addBtnEl = document.getElementById('add-shopping-btn');
+                this.listEl = document.getElementById('shopping-list');
+                this.addBtnEl.addEventListener('click', () => this.addItem());
+                this.inputEl.addEventListener('keypress', (e) => e.key === 'Enter' && this.addItem());
+                this.listEl.addEventListener('click', (e) => this.handleListClick(e));
             },
-            render(meals) {
-                this.mealInputs.forEach(input => {
-                    const day = input.id.split('-')[1];
-                    input.value = meals[day] || '';
+            render(items) {
+                this.listEl.innerHTML = "";
+                if (items.length === 0) {
+                    this.listEl.innerHTML = '<li class="text-gray-500 dark:text-gray-400">Your grocery list is empty.</li>';
+                    return;
+                }
+                items.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    li.className = "flex items-center justify-between p-2 rounded-lg bg-violet-100 dark:bg-gray-700";
+                    li.innerHTML = `<span>${item.text}</span> <div> <button data-index="${index}" class="buy-item-btn text-green-500 hover:text-green-700 mr-2" title="Move to Inventory"><i class="fas fa-check"></i></button> <button data-index="${index}" class="delete-item-btn text-red-500 hover:text-red-700" title="Delete"><i class="fas fa-trash"></i></button> </div>`;
+                    this.listEl.appendChild(li);
                 });
             },
-            saveMeals() {
-                this.mealInputs.forEach(input => {
-                    const day = input.id.split('-')[1];
-                    this.app.state.meals[day] = input.value.trim();
-                });
-                this.app.saveAndRender();
-                this.saveBtn.textContent = 'Saved!';
-                setTimeout(() => { this.saveBtn.textContent = 'Save Meals'; }, 2000);
+            addItem() {
+                const text = this.inputEl.value.trim();
+                if (text) {
+                    this.app.state.shopping.push({ text: text });
+                    this.inputEl.value = "";
+                    this.app.saveAndRender();
+                }
+            },
+            handleListClick(e) {
+                const deleteBtn = e.target.closest(".delete-item-btn");
+                if (deleteBtn) {
+                    this.app.state.shopping.splice(deleteBtn.dataset.index, 1);
+                }
+                const buyBtn = e.target.closest(".buy-item-btn");
+                if (buyBtn) {
+                    this.app.state.inventory.push(this.app.state.shopping.splice(buyBtn.dataset.index, 1)[0]);
+                }
+                if (deleteBtn || buyBtn) {
+                    this.app.saveAndRender();
+                }
             }
         };
 
-        const RewardsComponent = {
+        /**
+         * ----------------------------------------------------------------
+         * COMPONENT: InventoryComponent
+         * ----------------------------------------------------------------
+         * Manages the inventory page. Items are added from the grocery list
+         * or manually, and can be moved back to the grocery list.
+         */
+        const InventoryComponent = {
+             init(app) {
+                this.app = app;
+                this.listEl = document.getElementById('inventory-list');
+                this.inputEl = document.getElementById('inventory-input');
+                this.addBtnEl = document.getElementById('add-inventory-btn');
+
+                this.addBtnEl.addEventListener('click', () => this.addItem());
+                this.inputEl.addEventListener('keypress', (e) => e.key === 'Enter' && this.addItem());
+                this.listEl.addEventListener('click', e => this.handleListClick(e));
+            },
+            addItem() {
+                const text = this.inputEl.value.trim();
+                if (text) {
+                    this.app.state.inventory.push({ text: text });
+                    this.inputEl.value = '';
+                    this.app.saveAndRender();
+                }
+            },
+            render(items) {
+                this.listEl.innerHTML = "";
+                if (items.length === 0) {
+                    this.listEl.innerHTML = '<li class="text-gray-500 dark:text-gray-400">Your inventory is empty.</li>';
+                    return;
+                }
+                items.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    li.className = 'flex items-center justify-between p-3 bg-violet-100 dark:bg-gray-700 rounded-lg';
+                    li.innerHTML = `<span class="font-medium">${item.text}</span> <button data-index="${index}" class="add-to-list-btn bg-yellow-500 text-white px-3 py-1 text-sm rounded-lg hover:bg-yellow-600 transition-colors">Running Low</button>`;
+                    this.listEl.appendChild(li);
+                });
+            },
+            handleListClick(e) {
+                const addToListBtn = e.target.closest(".add-to-list-btn");
+                if (addToListBtn) {
+                    this.app.state.shopping.push(this.app.state.inventory.splice(addToListBtn.dataset.index, 1)[0]);
+                    this.app.saveAndRender();
+                }
+            }
+        };
+        
+        /**
+         * ----------------------------------------------------------------
+         * COMPONENT: DashboardComponent
+         * ----------------------------------------------------------------
+         * Manages the home page widgets and their interactions.
+         */
+        const DashboardComponent = {
             init(app) {
                 this.app = app;
-                this.nameInput = document.getElementById('reward-name-input');
-                this.barcodeInput = document.getElementById('reward-barcode-input');
-                this.addBtn = document.getElementById('add-reward-btn');
-                this.listEl = document.getElementById('rewards-list');
-                this.modal = document.getElementById('barcode-modal');
-                this.modalCardName = document.getElementById('barcode-card-name');
-                this.barcodeDisplay = document.getElementById('barcode-display');
-                this.closeModalBtn = document.getElementById('close-modal-btn');
-                this.addBtn.addEventListener('click', () => this.addCard());
-                this.listEl.addEventListener('click', (e) => this.handleListClick(e));
-                this.closeModalBtn.addEventListener('click', () => this.hideBarcodeModal());
+                this.mealWidget = document.getElementById("home-meal-widget");
+                this.shoppingWidget = document.getElementById("home-shopping-widget");
+                
+                this.mealWidget.addEventListener("click", () => {
+                    this.app.state.activeView = "meals";
+                    this.app.render();
+                });
+                this.shoppingWidget.addEventListener("click", () => {
+                    this.app.state.activeView = "shopping";
+                    this.app.render();
+                });
+            },
+            hasMeals(state) {
+                const today = this.app.components.meals.days[new Date().getDay()];
+                return Object.keys(state.meals[today] || {}).length > 0;
+            },
+            hasShopping(state) {
+                return state.shopping.length > 0;
+            },
+            render(state) {
+                if (this.hasMeals(state)) {
+                    const today = this.app.components.meals.days[new Date().getDay()];
+                    this.mealWidget.innerHTML = `<h3>Today's Menu</h3> ${this.app.components.meals.generateDayHtml(today, state.meals, true)}`;
+                } else {
+                    this.mealWidget.innerHTML = '<h3 class="text-center">Add a meal plan</h3> <p class="text-center text-gray-500 mt-2">Click here to start planning.</p>';
+                }
+
+                if (this.hasShopping(state)) {
+                    const shoppingPreview = state.shopping.slice(0, 4);
+                    let shoppingHtml = '<h3>Grocery List</h3><div class="space-y-2 mt-2">';
+                    shoppingPreview.forEach(item => {
+                        shoppingHtml += `<div class="flex items-center text-gray-700 dark:text-gray-300"> <i class="fas fa-circle text-primary/50 mr-3 text-[5px]"></i> <span>${item.text}</span> </div>`;
+                    });
+                    shoppingHtml += "</div>";
+                    this.shoppingWidget.innerHTML = shoppingHtml;
+                } else {
+                    this.shoppingWidget.innerHTML = '<h3 class="text-center">Add to your grocery list</h3> <p class="text-center text-gray-500 mt-2">Click here to start your list.</p>';
+                }
+            }
+        };
+        
+        /**
+         * ----------------------------------------------------------------
+         * COMPONENT: GeyserComponent
+         * ----------------------------------------------------------------
+         * Manages both the home page widget and the dedicated geyser control page.
+         */
+        const GeyserComponent = {
+            init(app) {
+                this.app = app;
+                // Widget Elements
+                this.tempWidgetEl = document.getElementById("geyser-temp-widget");
+                this.statusWidgetEl = document.getElementById("geyser-status-widget");
+                this.bannerWidgetEl = document.getElementById("geyser-heating-banner-widget");
+                this.btnWidgetEl = document.getElementById("geyser-toggle-btn-widget");
+                this.btnWidgetEl.addEventListener("click", () => this.toggleGeyser());
+
+                // Page Elements
+                this.tempPageEl = document.getElementById("geyser-temp-page");
+                this.statusPageEl = document.getElementById("geyser-status-page");
+                this.bannerPageEl = document.getElementById("geyser-heating-banner-page");
+                this.infoBannerPageEl = document.getElementById("geyser-info-banner-page");
+                this.btnPageEl = document.getElementById("geyser-toggle-btn-page");
+                this.btnPageEl.addEventListener("click", () => this.toggleGeyser());
+                this.delayTextPageEl = document.getElementById("geyser-delay-text");
+                this.delayBtnPageEl = document.getElementById("geyser-delay-btn");
+            },
+            toggleGeyser() {
+                this.app.state.geyser.isHeating = !this.app.state.geyser.isHeating;
+                this.app.saveAndRender();
+            },
+            render(state) {
+                const { temperature, isHeating } = state.geyser;
+                const statusText = temperature >= 40 ? "Your water is warm" : "Your water is cool";
+                
+                // --- Update Widget ---
+                this.tempWidgetEl.textContent = temperature;
+                this.statusWidgetEl.textContent = statusText;
+                this.bannerWidgetEl.classList.toggle("hidden", !isHeating);
+                this.btnWidgetEl.textContent = isHeating ? "Turn off now" : "Turn on now";
+                this.btnWidgetEl.classList.toggle("bg-red-500", isHeating);
+                this.btnWidgetEl.classList.toggle("hover:bg-red-600", isHeating);
+                this.btnWidgetEl.classList.toggle("bg-primary", !isHeating);
+                this.btnWidgetEl.classList.toggle("hover-bg-primary-dark", !isHeating);
+
+                // --- Update Geyser Page ---
+                this.tempPageEl.textContent = temperature;
+                this.statusPageEl.textContent = statusText;
+                this.bannerPageEl.classList.toggle("hidden", !isHeating);
+                this.infoBannerPageEl.classList.toggle("hidden", isHeating);
+                this.delayTextPageEl.classList.toggle("hidden", isHeating);
+                this.delayBtnPageEl.classList.toggle("hidden", isHeating);
+
+                const pageButton = this.btnPageEl;
+                pageButton.textContent = isHeating ? "Turn off now" : "Turn on now";
+                pageButton.classList.toggle("bg-red-500", isHeating);
+                pageButton.classList.toggle("hover:bg-red-600", isHeating);
+                pageButton.classList.toggle("bg-primary", !isHeating);
+                pageButton.classList.toggle("hover-bg-primary-dark", !isHeating);
+            }
+        };
+
+        /**
+         * ----------------------------------------------------------------
+         * COMPONENT: MealPlannerComponent
+         * ----------------------------------------------------------------
+         */
+        const MealPlannerComponent = {
+            days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            mealTypes: ["Breakfast", "Lunch", "Supper", "Snacks"],
+            init(app) {
+                this.app = app;
+                this.currentDayIndex = new Date().getDay();
+                this.dayTitleEl = document.getElementById("meal-planner-day-title");
+                this.plannerContainer = document.getElementById("meal-planner-container");
+                document.getElementById("prev-day-btn").addEventListener("click", () => this.changeDay(-1));
+                document.getElementById("next-day-btn").addEventListener("click", () => this.changeDay(1));
+                this.plannerContainer.addEventListener("click", e => this.handlePlannerClick(e));
+                this.modal = document.getElementById("meal-modal");
+                this.modalTitle = document.getElementById("meal-modal-title");
+                this.modalDayInput = document.getElementById("meal-modal-day");
+                this.modalTypeInput = document.getElementById("meal-modal-type");
+                this.modalInput = document.getElementById("meal-modal-input");
+                document.getElementById("save-meal-btn").addEventListener("click", () => this.saveMeal());
+                document.getElementById("cancel-meal-btn").addEventListener("click", () => this.hideMealModal());
+            },
+            changeDay(offset) {
+                this.currentDayIndex = (this.currentDayIndex + offset + 7) % 7;
+                this.app.render();
+            },
+            handlePlannerClick(e) {
+                const addButton = e.target.closest(".add-meal-btn");
+                if (addButton) {
+                    const { day, mealType } = addButton.dataset;
+                    this.showMealModal(day, mealType);
+                }
+            },
+            showMealModal(day, mealType) {
+                this.modalDayInput.value = day;
+                this.modalTypeInput.value = mealType;
+                this.modalTitle.textContent = `Add ${mealType}`;
+                this.modalInput.value = this.app.state.meals[day]?.[mealType] || "";
+                this.modal.classList.remove("hidden");
+                this.modalInput.focus();
+            },
+            hideMealModal() {
+                this.modal.classList.add("hidden");
+            },
+            saveMeal() {
+                const day = this.modalDayInput.value;
+                const mealType = this.modalTypeInput.value;
+                const mealName = this.modalInput.value.trim();
+                if (!this.app.state.meals[day]) {
+                    this.app.state.meals[day] = {};
+                }
+                if (mealName) {
+                    this.app.state.meals[day][mealType] = mealName;
+                } else {
+                    delete this.app.state.meals[day][mealType];
+                }
+                this.app.saveAndRender();
+                this.hideMealModal();
+            },
+            render(meals) {
+                const selectedDay = this.days[this.currentDayIndex];
+                this.dayTitleEl.textContent = selectedDay;
+                this.plannerContainer.innerHTML = this.generateDayHtml(selectedDay, meals);
+            },
+            generateDayHtml(day, meals, isWidget = false) {
+                const dayMeals = meals[day] || {};
+                let html = '<div class="space-y-4">';
+                this.mealTypes.forEach(mealType => {
+                    const mealName = dayMeals[mealType];
+                    html += `
+                        <div class="border-b dark:border-gray-700 pb-2">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-sm uppercase tracking-wider ${isWidget ? "text-gray-400" : "text-primary"}">${mealType}</h4>
+                                ${isWidget ? "" : `<button class="add-meal-btn text-primary" data-day="${day}" data-meal-type="${mealType}"><i class="fas fa-plus-circle"></i></button>`}
+                            </div>
+                            <p class="mt-1 text-gray-700 dark:text-gray-300">${mealName || (isWidget ? "Not planned" : "Click the + to add a meal")}</p>
+                        </div>
+                    `;
+                });
+                html += "</div>";
+                return html;
+            }
+        };
+        
+        const RewardsComponent = {
+             init(app) {
+                this.app = app;
+                this.nameInput = document.getElementById("reward-name-input");
+                this.barcodeInput = document.getElementById("reward-barcode-input");
+                this.addBtn = document.getElementById("add-reward-btn");
+                this.listEl = document.getElementById("rewards-list");
+                this.modal = document.getElementById("barcode-modal");
+                this.modalCardName = document.getElementById("barcode-card-name");
+                this.barcodeDisplay = document.getElementById("barcode-display");
+                this.closeModalBtn = document.getElementById("close-modal-btn");
+                this.addBtn.addEventListener("click", () => this.addCard());
+                this.listEl.addEventListener("click", e => this.handleListClick(e));
+                this.closeModalBtn.addEventListener("click", () => this.hideBarcodeModal());
             },
             render(rewards) {
-                this.listEl.innerHTML = '';
+                this.listEl.innerHTML = "";
                 if (rewards.length === 0) {
-                    this.listEl.innerHTML = `<p class="text-gray-500">No rewards cards added yet.</p>`;
+                    this.listEl.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No rewards cards added yet.</p>';
                     return;
                 }
                 rewards.forEach((card, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
-                    div.innerHTML = `
-                        <span class="font-medium">${card.name}</span>
-                        <div>
-                            <button data-index="${index}" class="view-barcode-btn text-primary hover-text-primary-dark mr-3" title="View Barcode">
-                                <i class="fas fa-barcode"></i> Scan
-                            </button>
-                            <button data-index="${index}" class="delete-reward-btn text-red-500 hover:text-red-700" title="Delete Card">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
+                    const div = document.createElement("div");
+                    div.className = "flex items-center justify-between p-3 bg-violet-100 dark:bg-gray-700 rounded-lg";
+                    div.innerHTML = `<span class="font-medium">${card.name}</span> <div> <button data-index="${index}" class="view-barcode-btn text-primary hover:text-primary-dark mr-3" title="View Barcode"> <i class="fas fa-barcode"></i> Scan </button> <button data-index="${index}" class="delete-reward-btn text-red-500 hover:text-red-700" title="Delete Card"> <i class="fas fa-trash"></i> </button> </div>`;
                     this.listEl.appendChild(div);
                 });
             },
@@ -446,23 +717,21 @@
                 const name = this.nameInput.value.trim();
                 const barcode = this.barcodeInput.value.trim();
                 if (name && barcode) {
-                    this.app.state.rewards.push({ name, barcode });
-                    this.nameInput.value = '';
-                    this.barcodeInput.value = '';
+                    this.app.state.rewards.push({ name: name, barcode: barcode });
+                    this.nameInput.value = "";
+                    this.barcodeInput.value = "";
                     this.app.saveAndRender();
                 }
             },
             handleListClick(e) {
-                const viewBtn = e.target.closest('.view-barcode-btn');
-                const deleteBtn = e.target.closest('.delete-reward-btn');
+                const viewBtn = e.target.closest(".view-barcode-btn");
                 if (viewBtn) {
-                    const index = viewBtn.dataset.index;
-                    const card = this.app.state.rewards[index];
+                    const card = this.app.state.rewards[viewBtn.dataset.index];
                     this.showBarcodeModal(card);
                 }
+                const deleteBtn = e.target.closest(".delete-reward-btn");
                 if (deleteBtn) {
-                    const index = deleteBtn.dataset.index;
-                    this.app.state.rewards.splice(index, 1);
+                    this.app.state.rewards.splice(deleteBtn.dataset.index, 1);
                     this.app.saveAndRender();
                 }
             },
@@ -470,351 +739,166 @@
                 this.modalCardName.textContent = card.name;
                 JsBarcode(this.barcodeDisplay, card.barcode, {
                     format: "CODE128",
-                    lineColor: "#000",
+                    lineColor: document.documentElement.classList.contains("dark") ? "#FFF" : "#000",
+                    background: "transparent",
                     width: 2,
                     height: 100,
                     displayValue: true
                 });
-                this.modal.classList.remove('hidden');
+                this.modal.classList.remove("hidden");
             },
             hideBarcodeModal() {
-                this.modal.classList.add('hidden');
+                this.modal.classList.add("hidden");
             }
         };
 
-        const DashboardComponent = {
-            init(app) {
-                this.app = app;
-                document.getElementById('home-shopping-widget').addEventListener('click', () => {
-                    this.app.state.activeView = 'shopping';
-                    this.app.render();
-                });
-            },
-            render(state) {
-                document.getElementById('summary-shopping-count').textContent = state.shopping.length;
-                document.getElementById('summary-geyser-temp').textContent = state.geyser.currentTemp;
-                document.getElementById('summary-geyser-status').textContent = state.geyser.statusText;
-                document.getElementById('summary-geyser-time').textContent = `You will have hot water at ${state.geyser.timeToHot}`;
-                
-                // Render Agenda
-                const agendaEl = document.getElementById('summary-agenda');
-                agendaEl.innerHTML = '';
-                const todayStr = new Date().toISOString().split('T')[0];
-                const todaysEvents = this.app.components.calendar.getEventsForDate(new Date(todayStr + 'T00:00:00'));
-                const todaysTodos = state.todos.filter(todo => !todo.completed);
-
-                const agendaItems = [
-                    ...todaysEvents.map(e => ({...e, type: 'event'})),
-                    ...todaysTodos.map(t => ({...t, type: 'todo', title: t.text}))
-                ].sort((a, b) => (a.time || '23:59').localeCompare(b.time || '23:59'));
-
-                if (agendaItems.length === 0) {
-                    agendaEl.innerHTML = `<p class="text-gray-500">Nothing scheduled for today.</p>`;
-                    return;
-                }
-
-                agendaItems.forEach(item => {
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'flex items-center p-2 rounded-lg bg-gray-100';
-                    if (item.type === 'event') {
-                        itemEl.innerHTML = `
-                            <span class="category-dot cat-${item.category}"></span>
-                            <span class="font-semibold mr-2">${item.time || 'All Day'}</span>
-                            <span>${item.title}</span>
-                        `;
-                    } else { // todo
-                        itemEl.innerHTML = `
-                            <i class="fas fa-list-check w-6 text-primary mr-2"></i>
-                            <span class="font-semibold mr-2">${item.time || ''}</span>
-                            <span>${item.title}</span>
-                        `;
-                    }
-                    agendaEl.appendChild(itemEl);
-                });
-            }
-        };
-
-        const CalendarComponent = {
-            init(app) {
-                this.app = app;
-                this.currentDate = new Date();
-                this.monthYearEl = document.getElementById('calendar-month-year');
-                this.gridEl = document.getElementById('calendar-grid');
-                
-                // Modals
-                this.eventModal = document.getElementById('event-modal');
-                this.eventDateInput = document.getElementById('event-date');
-                this.eventTitleInput = document.getElementById('event-title');
-                this.eventTimeInput = document.getElementById('event-time');
-                this.eventCategoryInput = document.getElementById('event-category');
-                this.eventRecurringInput = document.getElementById('event-recurring');
-                this.viewEventModal = document.getElementById('view-event-modal');
-
-                this.setupEventListeners();
-            },
-            setupEventListeners() {
-                document.getElementById('prev-month-btn').addEventListener('click', () => this.changeMonth(-1));
-                document.getElementById('next-month-btn').addEventListener('click', () => this.changeMonth(1));
-                document.getElementById('save-event-btn').addEventListener('click', () => this.saveEvent());
-                document.getElementById('cancel-event-btn').addEventListener('click', () => this.hideEventModal());
-                this.gridEl.addEventListener('click', (e) => this.handleDayClick(e));
-                document.getElementById('close-view-event-btn').addEventListener('click', () => this.hideViewEventModal());
-                document.getElementById('delete-event-btn').addEventListener('click', () => this.deleteEvent());
-            },
-            getEventsForDate(targetDate) {
-                const events = this.app.state.calendar.events;
-                const results = [];
-                const targetDateStr = targetDate.toISOString().split('T')[0];
-                
-                if (events[targetDateStr]) {
-                    results.push(...events[targetDateStr].map(e => ({...e, originalDate: targetDateStr})));
-                }
-
-                Object.keys(events).forEach(eventDateStr => {
-                    const eventDate = new Date(eventDateStr + 'T00:00:00');
-                    if (eventDate > targetDate) return;
-
-                    events[eventDateStr].forEach(event => {
-                        if (event.recurring === 'daily' && eventDateStr !== targetDateStr) {
-                            results.push({...event, originalDate: eventDateStr});
-                        }
-                        if (event.recurring === 'weekly' && eventDate.getDay() === targetDate.getDay() && eventDateStr !== targetDateStr) {
-                            results.push({...event, originalDate: eventDateStr});
-                        }
-                        if (event.recurring === 'monthly' && eventDate.getDate() === targetDate.getDate() && eventDateStr !== targetDateStr) {
-                            results.push({...event, originalDate: eventDateStr});
-                        }
-                    });
-                });
-                return results.sort((a,b) => (a.time || '23:59').localeCompare(b.time || '23:59'));
-            },
-            render(events) {
-                this.gridEl.innerHTML = '';
-                const year = this.currentDate.getFullYear();
-                const month = this.currentDate.getMonth();
-                this.monthYearEl.textContent = `${this.currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
-
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-                for (let i = 0; i < firstDay; i++) {
-                    this.gridEl.insertAdjacentHTML('beforeend', '<div></div>');
-                }
-
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const date = new Date(year, month, day);
-                    const dateStr = date.toISOString().split('T')[0];
-                    const dayEvents = this.getEventsForDate(date);
-                    const isToday = new Date().toDateString() === date.toDateString();
-                    
-                    const dayEl = document.createElement('div');
-                    dayEl.className = `calendar-day border p-2 cursor-pointer hover:bg-gray-100 ${isToday ? 'today' : ''}`;
-                    dayEl.dataset.date = dateStr;
-                    dayEl.innerHTML = `<div class="font-bold">${day}</div>`;
-                    
-                    const eventsContainer = document.createElement('div');
-                    eventsContainer.className = 'text-xs overflow-y-auto h-20';
-                    dayEvents.forEach((event, index) => {
-                        const eventEl = document.createElement('div');
-                        eventEl.className = 'bg-primary/20 text-gray-800 rounded px-1 mt-1 truncate flex items-center';
-                        eventEl.dataset.eventIndex = index;
-                        eventEl.dataset.eventDate = dateStr; // The date being rendered
-                        eventEl.dataset.originalDate = event.originalDate; // The date the event was created
-                        eventEl.innerHTML = `<span class="category-dot cat-${event.category}"></span><span>${event.title}</span>`;
-                        eventsContainer.appendChild(eventEl);
-                    });
-                    dayEl.appendChild(eventsContainer);
-                    this.gridEl.appendChild(dayEl);
-                }
-            },
-            changeMonth(offset) {
-                this.currentDate.setMonth(this.currentDate.getMonth() + offset);
-                this.app.render();
-            },
-            handleDayClick(e) {
-                const eventEl = e.target.closest('[data-event-index]');
-                if (eventEl) {
-                    const date = eventEl.dataset.eventDate;
-                    const index = parseInt(eventEl.dataset.eventIndex, 10);
-                    const allEventsOnDate = this.getEventsForDate(new Date(date + 'T00:00:00'));
-                    const event = allEventsOnDate[index];
-
-                    if(event) {
-                        this.showViewEventModal(event, date);
-                    }
-                    return;
-                }
-                const dayEl = e.target.closest('.calendar-day');
-                if (dayEl) {
-                    this.showEventModal(dayEl.dataset.date);
-                }
-            },
-            showEventModal(date) {
-                this.eventDateInput.value = date;
-                this.eventTitleInput.value = '';
-                this.eventTimeInput.value = '';
-                this.eventCategoryInput.value = 'event';
-                this.eventRecurringInput.value = 'none';
-                this.eventModal.classList.remove('hidden');
-            },
-            hideEventModal() {
-                this.eventModal.classList.add('hidden');
-            },
-            saveEvent() {
-                const date = this.eventDateInput.value;
-                const title = this.eventTitleInput.value.trim();
-                const time = this.eventTimeInput.value;
-                const category = this.eventCategoryInput.value;
-                const recurring = this.eventRecurringInput.value;
-                if (date && title) {
-                    if (!this.app.state.calendar.events[date]) {
-                        this.app.state.calendar.events[date] = [];
-                    }
-                    const newEvent = { id: Date.now().toString(), title, time, category, recurring };
-                    this.app.state.calendar.events[date].push(newEvent);
-                    this.app.saveAndRender();
-                    this.hideEventModal();
-                }
-            },
-            showViewEventModal(event, displayDate) {
-                document.getElementById('view-event-title').textContent = event.title;
-                document.getElementById('view-event-date').textContent = new Date(displayDate + 'T00:00:00').toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                document.getElementById('view-event-time').textContent = event.time || 'All Day';
-                document.getElementById('view-event-category').textContent = event.category;
-                document.getElementById('view-event-recurring').textContent = event.recurring;
-                document.getElementById('delete-event-btn').dataset.originalDate = event.originalDate;
-                document.getElementById('delete-event-btn').dataset.eventId = event.id;
-                this.viewEventModal.classList.remove('hidden');
-            },
-            hideViewEventModal() {
-                this.viewEventModal.classList.add('hidden');
-            },
-            deleteEvent() {
-                const originalDate = document.getElementById('delete-event-btn').dataset.originalDate;
-                const eventId = document.getElementById('delete-event-btn').dataset.eventId;
-                
-                if (this.app.state.calendar.events[originalDate]) {
-                    this.app.state.calendar.events[originalDate] = this.app.state.calendar.events[originalDate].filter(
-                        event => event.id !== eventId
-                    );
-                    if(this.app.state.calendar.events[originalDate].length === 0) {
-                        delete this.app.state.calendar.events[originalDate];
-                    }
-                    this.app.saveAndRender();
-                    this.hideViewEventModal();
-                }
-            }
-        };
-
-        const ClockComponent = {
+        const SettingsComponent = {
             init() {
-                this.timeEl = document.getElementById('clock-time');
-                this.dateEl = document.getElementById('clock-date');
-                this.update();
-                setInterval(() => this.update(), 1000);
+                this.faqContainer = document.getElementById("faq-container");
+                this.renderFAQs();
+                this.faqContainer.addEventListener("click", e => {
+                    const question = e.target.closest(".faq-question");
+                    if (question) {
+                        const answer = question.nextElementSibling;
+                        const icon = question.querySelector("i");
+                        answer.classList.toggle("!max-h-screen");
+                        icon.classList.toggle("rotate-180");
+                    }
+                });
             },
-            update() {
-                const now = new Date();
-                this.timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-                this.dateEl.textContent = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            renderFAQs() {
+                const faqs = [{
+                    q: "How do I add a new shopping item?",
+                    a: "Go to the Shopping List tab, type your item in the input box, and click 'Add'."
+                }, {
+                    q: "How do I add a meal?",
+                    a: "Go to the Meal Planner, navigate to the correct day, and click the '+' icon next to the meal type (e.g., Breakfast)."
+                }];
+                this.faqContainer.innerHTML = faqs.map(faq => `<div> <button class="faq-question w-full text-left p-3 bg-violet-100 dark:bg-gray-700 rounded-lg hover:bg-violet-200 dark:hover:bg-gray-600 flex justify-between items-center"> <span>${faq.q}</span> <i class="fas fa-chevron-down transition-transform"></i> </button> <div class="faq-answer max-h-0 overflow-hidden transition-all duration-300"> <p class="p-3 text-gray-600 dark:text-gray-300">${faq.a}</p> </div> </div>`).join("");
             }
         };
 
-        // --- MAIN APP CONTROLLER ---
+        const ThemeComponent = {
+            init() {
+                this.toggleCheckbox = document.getElementById("theme-toggle");
+                this.toggleCheckbox.addEventListener("change", e => this.toggleTheme(e.target.checked));
+                if (localStorage.theme === "dark" || !("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    this.setTheme("dark");
+                } else {
+                    this.setTheme("light");
+                }
+            },
+            toggleTheme(isDark) {
+                this.setTheme(isDark ? "dark" : "light");
+            },
+            setTheme(theme) {
+                if (theme === "dark") {
+                    document.documentElement.classList.add("dark");
+                    this.toggleCheckbox.checked = true;
+                    localStorage.theme = "dark";
+                } else {
+                    document.documentElement.classList.remove("dark");
+                    this.toggleCheckbox.checked = false;
+                    localStorage.theme = "light";
+                }
+            }
+        };
+
         const App = {
             state: {
-                todos: [],
                 shopping: [],
+                inventory: [],
                 meals: {},
                 rewards: [],
                 geyser: {
-                    currentTemp: 22,
-                    statusText: "Your water is cool.",
-                    timeToHot: "3:00pm"
-                },
-                calendar: {
-                    events: {}
+                    isHeating: false,
+                    temperature: 55
                 },
                 activeView: 'dashboard'
             },
-            
             components: {},
-
+            
             init() {
                 this.loadState();
                 
-                this.components.todos = createListComponent({ app: this, stateKey: 'todos', inputId: 'todo-input', addBtnId: 'add-todo-btn', listId: 'todo-list', placeholder: 'No tasks yet. Add one above!', timeInputId: 'todo-time' });
-                this.components.shopping = createListComponent({ app: this, stateKey: 'shopping', inputId: 'shopping-input', addBtnId: 'add-shopping-btn', listId: 'shopping-list', placeholder: 'Your shopping list is empty.' });
+                this.components.shopping = ShoppingListComponent;
+                this.components.inventory = InventoryComponent;
                 this.components.meals = MealPlannerComponent;
                 this.components.rewards = RewardsComponent;
+                this.components.settings = SettingsComponent;
+                this.components.theme = ThemeComponent;
+                this.components.geyser = GeyserComponent;
                 this.components.dashboard = DashboardComponent;
-                this.components.calendar = CalendarComponent;
-                this.components.clock = ClockComponent;
+                
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+                const openSidebar = () => {
+                    sidebar.classList.add('open');
+                    document.body.classList.add('sidebar-open');
+                    overlay.classList.remove('hidden');
+                };
+                const closeSidebar = () => {
+                    sidebar.classList.remove('open');
+                     document.body.classList.remove('sidebar-open');
+                    overlay.classList.add('hidden');
+                };
+                mobileMenuBtn.addEventListener('click', openSidebar);
+                overlay.addEventListener('click', closeSidebar);
 
                 Object.values(this.components).forEach(c => c.init(this));
-
-                this.setupNavigation();
+                this.setupNavigation(closeSidebar);
                 this.render();
             },
 
             loadState() {
-                this.state.todos = JSON.parse(localStorage.getItem('todos')) || [];
-                this.state.shopping = JSON.parse(localStorage.getItem('shopping')) || [];
-                this.state.meals = JSON.parse(localStorage.getItem('meals')) || {};
-                this.state.rewards = JSON.parse(localStorage.getItem('rewards')) || [];
-                const savedEvents = JSON.parse(localStorage.getItem('calendarEvents')) || {};
-                // Backward compatibility for events without IDs
-                Object.keys(savedEvents).forEach(date => {
-                    savedEvents[date].forEach(event => {
-                        if (!event.id) {
-                            event.id = Date.now().toString() + Math.random();
-                        }
-                    });
-                });
-                this.state.calendar.events = savedEvents;
-                const defaultGeyserState = { currentTemp: 22, statusText: "Your water is cool.", timeToHot: "3:00pm" };
-                const savedGeyser = JSON.parse(localStorage.getItem('geyser')) || {};
-                this.state.geyser = { ...defaultGeyserState, ...savedGeyser };
+                this.state.shopping = JSON.parse(localStorage.getItem('plentify-shopping')) || [];
+                this.state.inventory = JSON.parse(localStorage.getItem('plentify-inventory')) || [];
+                this.state.meals = JSON.parse(localStorage.getItem('plentify-meals')) || {};
+                this.state.rewards = JSON.parse(localStorage.getItem('plentify-rewards')) || [];
+                this.state.geyser = JSON.parse(localStorage.getItem('plentify-geyser')) || { isHeating: false, temperature: 55 };
             },
 
             saveState() {
-                localStorage.setItem('todos', JSON.stringify(this.state.todos));
-                localStorage.setItem('shopping', JSON.stringify(this.state.shopping));
-                localStorage.setItem('meals', JSON.stringify(this.state.meals));
-                localStorage.setItem('rewards', JSON.stringify(this.state.rewards));
-                localStorage.setItem('calendarEvents', JSON.stringify(this.state.calendar.events));
-                localStorage.setItem('geyser', JSON.stringify(this.state.geyser));
+                localStorage.setItem('plentify-shopping', JSON.stringify(this.state.shopping));
+                localStorage.setItem('plentify-inventory', JSON.stringify(this.state.inventory));
+                localStorage.setItem('plentify-meals', JSON.stringify(this.state.meals));
+                localStorage.setItem('plentify-rewards', JSON.stringify(this.state.rewards));
+                localStorage.setItem('plentify-geyser', JSON.stringify(this.state.geyser));
             },
 
-            setupNavigation() {
+            setupNavigation(closeSidebarCallback) {
                 document.querySelectorAll('nav a.nav-item').forEach(item => {
                     if (item.id) {
                         item.addEventListener('click', (e) => {
                             e.preventDefault();
                             this.state.activeView = item.id.split('-')[1];
                             this.render();
+                            if (window.innerWidth < 768) {
+                                closeSidebarCallback();
+                            }
                         });
                     }
                 });
             },
 
             render() {
-                const contentSections = document.querySelectorAll('.content-section');
-                const navItems = document.querySelectorAll('nav a.nav-item');
-                navItems.forEach(item => {
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.toggle('active', section.id === `content-${this.state.activeView}`);
+                });
+                
+                document.querySelectorAll('nav a.nav-item').forEach(item => {
                     if(item.id) {
                         item.classList.toggle('active', item.id === `nav-${this.state.activeView}`);
                     }
                 });
-                contentSections.forEach(section => section.classList.toggle('active', section.id === `content-${this.state.activeView}`));
 
-                // Explicitly render each component
-                this.components.todos.render(this.state.todos);
                 this.components.shopping.render(this.state.shopping);
+                this.components.inventory.render(this.state.inventory);
                 this.components.meals.render(this.state.meals);
                 this.components.rewards.render(this.state.rewards);
+                this.components.geyser.render(this.state);
                 this.components.dashboard.render(this.state);
-                this.components.calendar.render(this.state.calendar.events);
             },
 
             saveAndRender() {
@@ -823,9 +907,9 @@
             }
         };
 
-        // --- START THE APP ---
         App.init();
     });
     </script>
 </body>
 </html>
+
